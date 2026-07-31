@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MN Sales — Контент-конвейер</title>
+<style>
+  :root{
+    --mn-green-1:#0f9b6c;
+    --mn-green-2:#0a7a56;
+    --bg:#f4f6f5;
+    --card:#ffffff;
+    --ink:#1e293b;
+    --ink-light:#64748b;
+    --border:#e6eae8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    padding-bottom:40px;
+  }
+  header{
+    background:linear-gradient(135deg, var(--mn-green-1), var(--mn-green-2));
+    color:#fff;
+    padding:20px 18px 26px;
+    border-radius:0 0 20px 20px;
+  }
+  .logo-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .logo-sq{
+    width:34px;height:34px;border-radius:8px;
+    background:rgba(255,255,255,0.18);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:15px;letter-spacing:0.5px;
+  }
+  .brand{font-size:13px;letter-spacing:1.5px;opacity:0.85;text-transform:uppercase;}
+  h1{font-size:22px;font-weight:700;margin-bottom:4px;}
+  .subtitle{font-size:13px;opacity:0.85;}
+
+  .filter-row{
+    display:flex;gap:8px;padding:14px 16px 0;max-width:520px;margin:0 auto;
+    overflow-x:auto;
+  }
+  .filter-chip{
+    flex-shrink:0;
+    font-size:12px;font-weight:600;
+    padding:6px 12px;border-radius:999px;
+    border:1px solid var(--border);
+    background:var(--card);color:var(--ink-light);
+    cursor:pointer;white-space:nowrap;
+  }
+  .filter-chip.active{
+    background:var(--ink);color:#fff;border-color:var(--ink);
+  }
+  .filter-chip .dot{
+    display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;
+  }
+  .filter-chip.active .dot{opacity:0.9;}
+  .dot.tr{background:#3b82f6;}
+  .dot.mn{background:var(--mn-green-1);}
+  .dot.cons{background:#a855f7;}
+
+  .board{
+    display:flex;gap:12px;
+    padding:16px;overflow-x:auto;
+    max-width:520px;margin:0 auto;
+  }
+  .col{
+    flex:0 0 78%;
+    max-width:280px;
+  }
+  .col-head{
+    display:flex;align-items:center;justify-content:space-between;
+    font-size:12.5px;font-weight:700;color:var(--ink-light);
+    text-transform:uppercase;letter-spacing:0.3px;
+    padding:0 4px 8px;
+  }
+  .col-count{
+    background:var(--border);color:var(--ink);
+    font-size:11px;font-weight:700;
+    border-radius:999px;padding:1px 7px;
+  }
+  .col-body{display:flex;flex-direction:column;gap:8px;min-height:60px;}
+
+  .card{
+    background:var(--card);border:1px solid var(--border);border-radius:12px;
+    padding:11px 12px;
+  }
+  .card-top{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+  .card-proj-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+  .card-proj{font-size:10.5px;color:var(--ink-light);font-weight:600;}
+  .card-type{
+    margin-left:auto;font-size:10px;color:var(--ink-light);
+    background:var(--bg);padding:2px 6px;border-radius:6px;
+  }
+  .card-title{font-size:13px;font-weight:600;line-height:1.3;}
+  .card-date{font-size:10.5px;color:var(--ink-light);margin-top:6px;}
+
+  .empty{
+    font-size:12px;color:var(--ink-light);
+    text-align:center;padding:16px 0;
+  }
+
+  footer{
+    text-align:center;font-size:11px;color:var(--ink-light);
+    margin-top:10px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-row">
+    <div class="logo-sq">MN</div>
+    <div class="brand">MN Sales · Продвижение</div>
+  </div>
+  <h1>Контент-конвейер</h1>
+  <div class="subtitle">Листай вправо — этапы; фильтруй по проекту</div>
+</header>
+
+<div class="filter-row" id="filterRow"></div>
+
+<div class="board" id="board"></div>
+
+<footer>MN Sales — прототип, тестовые данные · листай колонки вбок</footer>
+
+<script>
+// ---- тестовые данные ----
+const projLabels = { tr:'Travel Radar', mn:'MN Systems', cons:'Консалтинг' };
+
+const items = [
+  { proj:'tr', type:'Видео', title:'Ролик по Кок-Тобе', status:'work', date:'2 авг' },
+  { proj:'tr', type:'Видео', title:'Ролик по Зелёному базару', status:'plan', date:'—' },
+  { proj:'tr', type:'Reels', title:'Вступительный ролик (90 сек)', status:'ready', date:'—' },
+  { proj:'tr', type:'Пост', title:'8 постов для Instagram (EN)', status:'live', date:'опубликовано' },
+  { proj:'mn', type:'Видео', title:'Видеовизитка, часть 2', status:'live', date:'опубликовано' },
+  { proj:'mn', type:'Пост', title:'Контент-план на 2 недели (6 постов)', status:'work', date:'3 авг' },
+  { proj:'mn', type:'Демо', title:'Скрипт демо для клиник', status:'ready', date:'—' },
+  { proj:'cons', type:'Презентация', title:'32-слайдовая презентация', status:'live', date:'опубликовано' },
+  { proj:'cons', type:'Пост', title:'Разбор кейса BenzoGasStroy', status:'plan', date:'—' },
+  { proj:'cons', type:'Видео', title:'Мотивационная серия для воркшопа', status:'plan', date:'—' }
+];
+
+const columns = [
+  { key:'plan',  name:'В плане' },
+  { key:'work',  name:'В работе' },
+  { key:'ready', name:'Готово' },
+  { key:'live',  name:'Опубликовано' }
+];
+
+let activeFilter = 'all';
+
+const filterRow = document.getElementById('filterRow');
+const filters = [{key:'all', label:'Все'}, {key:'tr', label:'Travel Radar', dot:'tr'}, {key:'mn', label:'MN Systems', dot:'mn'}, {key:'cons', label:'Консалтинг', dot:'cons'}];
+filters.forEach(f => {
+  const chip = document.createElement('div');
+  chip.className = 'filter-chip' + (f.key === 'all' ? ' active' : '');
+  chip.innerHTML = (f.dot ? `<span class="dot ${f.dot}"></span>` : '') + f.label;
+  chip.addEventListener('click', () => {
+    activeFilter = f.key;
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    render();
+  });
+  filterRow.appendChild(chip);
+});
+
+function render(){
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+  columns.forEach(col => {
+    const colItems = items.filter(it => it.status === col.key && (activeFilter === 'all' || it.proj === activeFilter));
+    const colEl = document.createElement('div');
+    colEl.className = 'col';
+    colEl.innerHTML = `
+      <div class="col-head"><span>${col.name}</span><span class="col-count">${colItems.length}</span></div>
+      <div class="col-body">
+        ${colItems.length === 0 ? '<div class="empty">Пусто</div>' : colItems.map(it => `
+          <div class="card">
+            <div class="card-top">
+              <span class="card-proj-dot dot ${it.proj}"></span>
+              <span class="card-proj">${projLabels[it.proj]}</span>
+              <span class="card-type">${it.type}</span>
+            </div>
+            <div class="card-title">${it.title}</div>
+            <div class="card-date">${it.date}</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    board.appendChild(colEl);
+  });
+}
+render();
+</script>
+
+</body>
+</html>
