@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MN Sales — Обзор</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    --mn-green-1:#0f9b6c;
+    --mn-green-2:#0a7a56;
+    --bg:#f4f6f5;
+    --card:#ffffff;
+    --ink:#1e293b;
+    --ink-light:#64748b;
+    --border:#e6eae8;
+    --red:#e2574c;
+    --amber:#e0a336;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    padding-bottom:40px;
+  }
+  header{
+    background:linear-gradient(135deg, var(--mn-green-1), var(--mn-green-2));
+    color:#fff;
+    padding:20px 18px 26px;
+    border-radius:0 0 20px 20px;
+  }
+  .logo-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .logo-sq{
+    width:34px;height:34px;border-radius:8px;
+    background:rgba(255,255,255,0.18);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:15px;letter-spacing:0.5px;
+  }
+  .brand{font-size:13px;letter-spacing:1.5px;opacity:0.85;text-transform:uppercase;}
+  h1{font-size:22px;font-weight:700;margin-bottom:4px;}
+  .subtitle{font-size:13px;opacity:0.85;}
+
+  .container{padding:16px;max-width:520px;margin:0 auto;}
+
+  .money-card{
+    background:var(--card);
+    border-radius:16px;
+    padding:18px;
+    margin-top:-30px;
+    box-shadow:0 8px 24px rgba(15,155,108,0.12);
+    border:1px solid var(--border);
+  }
+  .money-total{font-size:30px;font-weight:800;color:var(--ink);}
+  .money-label{font-size:12px;color:var(--ink-light);margin-top:2px;}
+  .money-split{display:flex;gap:10px;margin-top:14px;}
+  .money-item{flex:1;background:var(--bg);border-radius:12px;padding:10px 12px;}
+  .money-item .val{font-size:15px;font-weight:700;}
+  .money-item .lbl{font-size:11px;color:var(--ink-light);margin-top:2px;}
+
+  .section-title{
+    font-size:14px;font-weight:700;color:var(--ink);
+    margin:22px 0 10px;display:flex;align-items:center;justify-content:space-between;
+  }
+  .section-title span.hint{font-size:11px;font-weight:500;color:var(--ink-light);}
+
+  .today-list{background:var(--card);border-radius:14px;border:1px solid var(--border);overflow:hidden;}
+  .today-item{
+    display:flex;align-items:center;gap:10px;
+    padding:12px 14px;border-bottom:1px solid var(--border);
+    font-size:13.5px;
+  }
+  .today-item:last-child{border-bottom:none;}
+  .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .dot.green{background:var(--mn-green-1);}
+  .dot.amber{background:var(--amber);}
+  .dot.red{background:var(--red);}
+  .today-item .proj{font-size:10.5px;color:var(--ink-light);margin-left:auto;white-space:nowrap;padding-left:8px;}
+
+  .chart-card{
+    background:var(--card);border-radius:14px;border:1px solid var(--border);
+    padding:14px;margin-top:10px;
+  }
+
+  .proj-cards{display:flex;flex-direction:column;gap:10px;}
+  .proj-card{
+    background:var(--card);border-radius:14px;border:1px solid var(--border);
+    padding:14px;display:flex;align-items:center;gap:12px;
+  }
+  .proj-dot{width:10px;height:44px;border-radius:5px;flex-shrink:0;}
+  .proj-dot.tr{background:#3b82f6;}
+  .proj-dot.mn{background:var(--mn-green-1);}
+  .proj-dot.cons{background:#a855f7;}
+  .proj-info{flex:1;}
+  .proj-name{font-size:13.5px;font-weight:700;}
+  .proj-metric{font-size:11.5px;color:var(--ink-light);margin-top:2px;}
+  .proj-money{font-size:15px;font-weight:800;text-align:right;}
+
+  footer{
+    text-align:center;font-size:11px;color:var(--ink-light);
+    margin-top:26px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-row">
+    <div class="logo-sq">MN</div>
+    <div class="brand">MN Sales · Продвижение</div>
+  </div>
+  <h1>Обзор</h1>
+  <div class="subtitle">Пятница, 31 июля — за неделю по всем проектам</div>
+</header>
+
+<div class="container">
+
+  <div class="money-card">
+    <div class="money-total" id="totalMoney">—</div>
+    <div class="money-label">Пришло за 7 дней, все проекты</div>
+    <div class="money-split" id="moneySplit"></div>
+  </div>
+
+  <div class="section-title">Сделать сегодня <span class="hint">3 задачи</span></div>
+  <div class="today-list" id="todayList"></div>
+
+  <div class="section-title">Деньги по неделям</div>
+  <div class="chart-card">
+    <canvas id="moneyChart" height="160"></canvas>
+  </div>
+
+  <div class="section-title">Проекты</div>
+  <div class="proj-cards" id="projCards"></div>
+
+</div>
+
+<footer>MN Sales — прототип, тестовые данные</footer>
+
+<script>
+// ---- тестовые данные ----
+const projects = [
+  {key:'tr',   name:'KZ Travel Radar', dotClass:'tr',   money7:4, metric:'2 продажи на Gumroad'},
+  {key:'mn',   name:'MN Systems',      dotClass:'mn',   money7:150000, metric:'6 тёплых контактов в WhatsApp'},
+  {key:'cons', name:'Консалтинг',      dotClass:'cons', money7:0, metric:'1 экспресс-сессия назначена'}
+];
+
+const todayTasks = [
+  {text:'10 контактов клиникам Алматы (WhatsApp)', dot:'green', proj:'MN Systems'},
+  {text:'Смонтировать видео по Кок-Тобе', dot:'amber', proj:'Travel Radar'},
+  {text:'Ответить на 2 заявки с сайта', dot:'red', proj:'Консалтинг'}
+];
+
+const weeklyMoney = {
+  labels:['5 недель назад','4 недели назад','3 недели назад','2 недели назад','Прошлая неделя','Эта неделя'],
+  mn:   [80000, 95000, 110000, 130000, 140000, 150000],
+  tr:   [1, 2, 3, 2, 5, 4],
+  cons: [0, 0, 0, 0, 0, 0]
+};
+
+// ---- рендер ----
+function formatTenge(v){ return v.toLocaleString('ru-RU') + ' ₸'; }
+function formatDollar(v){ return '$' + v; }
+
+const totalTenge = projects.find(p=>p.key==='mn').money7;
+document.getElementById('totalMoney').textContent = formatTenge(totalTenge) + ' + ' + formatDollar(projects.find(p=>p.key==='tr').money7);
+
+const moneySplit = document.getElementById('moneySplit');
+projects.forEach(p=>{
+  const div = document.createElement('div');
+  div.className='money-item';
+  const val = p.key==='tr' ? formatDollar(p.money7) : formatTenge(p.money7);
+  div.innerHTML = `<div class="val">${val}</div><div class="lbl">${p.name}</div>`;
+  moneySplit.appendChild(div);
+});
+
+const todayList = document.getElementById('todayList');
+todayTasks.forEach(t=>{
+  const div = document.createElement('div');
+  div.className='today-item';
+  div.innerHTML = `<span class="dot ${t.dot}"></span><span>${t.text}</span><span class="proj">${t.proj}</span>`;
+  todayList.appendChild(div);
+});
+
+const projCards = document.getElementById('projCards');
+projects.forEach(p=>{
+  const div = document.createElement('div');
+  div.className='proj-card';
+  const val = p.key==='tr' ? formatDollar(p.money7) : formatTenge(p.money7);
+  div.innerHTML = `
+    <div class="proj-dot ${p.dotClass}"></div>
+    <div class="proj-info">
+      <div class="proj-name">${p.name}</div>
+      <div class="proj-metric">${p.metric}</div>
+    </div>
+    <div class="proj-money">${val}</div>
+  `;
+  projCards.appendChild(div);
+});
+
+new Chart(document.getElementById('moneyChart'), {
+  type:'line',
+  data:{
+    labels: weeklyMoney.labels,
+    datasets:[{
+      label:'MN Systems (₸)',
+      data: weeklyMoney.mn,
+      borderColor:'#0f9b6c',
+      backgroundColor:'rgba(15,155,108,0.08)',
+      tension:0.35,
+      fill:true,
+      pointRadius:3
+    }]
+  },
+  options:{
+    responsive:true,
+    plugins:{ legend:{ display:false } },
+    scales:{
+      x:{ ticks:{ font:{ size:10 } } },
+      y:{ ticks:{ font:{ size:10 }, callback:v=>v/1000+'к' } }
+    }
+  }
+});
+</script>
+
+</body>
+</html>
