@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MN Sales — Продажи и деньги</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    --mn-green-1:#0f9b6c;
+    --mn-green-2:#0a7a56;
+    --bg:#f4f6f5;
+    --card:#ffffff;
+    --ink:#1e293b;
+    --ink-light:#64748b;
+    --border:#e6eae8;
+    --up:#0f9b6c;
+    --down:#e2574c;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    padding-bottom:40px;
+  }
+  header{
+    background:linear-gradient(135deg, var(--mn-green-1), var(--mn-green-2));
+    color:#fff;
+    padding:20px 18px 26px;
+    border-radius:0 0 20px 20px;
+  }
+  .logo-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .logo-sq{
+    width:34px;height:34px;border-radius:8px;
+    background:rgba(255,255,255,0.18);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:15px;letter-spacing:0.5px;
+  }
+  .brand{font-size:13px;letter-spacing:1.5px;opacity:0.85;text-transform:uppercase;}
+  h1{font-size:22px;font-weight:700;margin-bottom:4px;}
+  .subtitle{font-size:13px;opacity:0.85;}
+
+  .container{padding:16px;max-width:520px;margin:0 auto;}
+
+  .toggle-row{display:flex;gap:8px;margin:-30px 0 12px;}
+  .toggle{
+    flex:1;text-align:center;font-size:12.5px;font-weight:700;
+    background:var(--card);border:1px solid var(--border);
+    border-radius:10px;padding:9px 0;cursor:pointer;color:var(--ink-light);
+    box-shadow:0 6px 16px rgba(15,155,108,0.10);
+  }
+  .toggle.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+
+  .chart-card{
+    background:var(--card);border-radius:14px;border:1px solid var(--border);
+    padding:14px;
+  }
+
+  .section-title{
+    font-size:14px;font-weight:700;color:var(--ink);
+    margin:20px 0 10px;
+  }
+
+  .rows{background:var(--card);border-radius:14px;border:1px solid var(--border);overflow:hidden;}
+  .row{
+    display:flex;align-items:center;gap:10px;
+    padding:13px 14px;border-bottom:1px solid var(--border);
+  }
+  .row:last-child{border-bottom:none;}
+  .row-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+  .dot.tr{background:#3b82f6;}
+  .dot.mn{background:var(--mn-green-1);}
+  .dot.cons{background:#a855f7;}
+  .row-info{flex:1;}
+  .row-name{font-size:13px;font-weight:700;}
+  .row-sub{font-size:11px;color:var(--ink-light);margin-top:2px;}
+  .row-right{text-align:right;}
+  .row-val{font-size:14px;font-weight:800;}
+  .row-trend{font-size:11px;font-weight:700;margin-top:2px;}
+  .row-trend.up{color:var(--up);}
+  .row-trend.down{color:var(--down);}
+
+  footer{
+    text-align:center;font-size:11px;color:var(--ink-light);
+    margin-top:22px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-row">
+    <div class="logo-sq">MN</div>
+    <div class="brand">MN Sales · Продвижение</div>
+  </div>
+  <h1>Продажи и деньги</h1>
+  <div class="subtitle">Помесячно, по всем проектам</div>
+</header>
+
+<div class="container">
+
+  <div class="toggle-row">
+    <div class="toggle active" data-mode="stack">По проектам</div>
+    <div class="toggle" data-mode="line">Общий тренд</div>
+  </div>
+
+  <div class="chart-card">
+    <canvas id="moneyChart" height="200"></canvas>
+  </div>
+
+  <div class="section-title">По проектам за этот месяц</div>
+  <div class="rows" id="projRows"></div>
+
+</div>
+
+<footer>MN Sales — прототип, тестовые данные</footer>
+
+<script>
+// ---- тестовые данные (в тенге, Travel Radar переведён по курсу условно для сравнения) ----
+const months = ['Мар','Апр','Май','Июн','Июл'];
+
+const data = {
+  mn:   [320000, 410000, 480000, 560000, 610000],
+  tr:   [1500,   3000,   4500,   6000,   9000],
+  cons: [0,      0,      50000,  80000,  60000]
+};
+
+const projLabels = { tr:'Travel Radar', mn:'MN Systems', cons:'Консалтинг' };
+const projSub = { tr:'2 продажи в этом месяце · $1 за штуку', mn:'4 новых клиента · средний чек 150 000 ₸', cons:'1 клиент · разовая консультация' };
+
+let mode = 'stack';
+let chart;
+
+function totalByMonth(){
+  return months.map((_, i) => data.mn[i] + data.tr[i] + data.cons[i]);
+}
+
+function buildChart(){
+  const ctx = document.getElementById('moneyChart');
+  if (chart) chart.destroy();
+
+  if (mode === 'stack') {
+    chart = new Chart(ctx, {
+      type:'bar',
+      data:{
+        labels: months,
+        datasets:[
+          { label:'MN Systems', data:data.mn, backgroundColor:'#0f9b6c' },
+          { label:'Консалтинг', data:data.cons, backgroundColor:'#a855f7' },
+          { label:'Travel Radar (₸-экв.)', data:data.tr.map(v=>v*470), backgroundColor:'#3b82f6' }
+        ]
+      },
+      options:{
+        responsive:true,
+        plugins:{ legend:{ position:'bottom', labels:{ font:{ size:10 }, boxWidth:10 } } },
+        scales:{
+          x:{ stacked:true, ticks:{ font:{ size:10 } } },
+          y:{ stacked:true, ticks:{ font:{ size:10 }, callback:v=>(v/1000)+'к' } }
+        }
+      }
+    });
+  } else {
+    chart = new Chart(ctx, {
+      type:'line',
+      data:{
+        labels: months,
+        datasets:[{
+          label:'Всего, ₸',
+          data: totalByMonth(),
+          borderColor:'#0f9b6c',
+          backgroundColor:'rgba(15,155,108,0.08)',
+          tension:0.35, fill:true, pointRadius:3
+        }]
+      },
+      options:{
+        responsive:true,
+        plugins:{ legend:{ display:false } },
+        scales:{
+          x:{ ticks:{ font:{ size:10 } } },
+          y:{ ticks:{ font:{ size:10 }, callback:v=>(v/1000)+'к' } }
+        }
+      }
+    });
+  }
+}
+
+document.querySelectorAll('.toggle').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.toggle').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    mode = t.dataset.mode;
+    buildChart();
+  });
+});
+
+buildChart();
+
+// ---- строки по проектам ----
+const projRows = document.getElementById('projRows');
+['mn','cons','tr'].forEach(key => {
+  const arr = data[key];
+  const cur = arr[arr.length - 1];
+  const prev = arr[arr.length - 2];
+  const change = prev === 0 ? 100 : Math.round(((cur - prev) / prev) * 100);
+  const isUp = change >= 0;
+  const val = key === 'tr' ? '$' + cur : cur.toLocaleString('ru-RU') + ' ₸';
+
+  const row = document.createElement('div');
+  row.className = 'row';
+  row.innerHTML = `
+    <span class="row-dot dot ${key}"></span>
+    <div class="row-info">
+      <div class="row-name">${projLabels[key]}</div>
+      <div class="row-sub">${projSub[key]}</div>
+    </div>
+    <div class="row-right">
+      <div class="row-val">${val}</div>
+      <div class="row-trend ${isUp ? 'up' : 'down'}">${isUp ? '↑' : '↓'} ${Math.abs(change)}%</div>
+    </div>
+  `;
+  projRows.appendChild(row);
+});
+</script>
+
+</body>
+</html>
