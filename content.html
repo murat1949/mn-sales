@@ -19,7 +19,7 @@
     font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
     background:var(--bg);
     color:var(--ink);
-    padding-bottom:86px;
+    padding-bottom:0;
   }
   header{
     background:linear-gradient(135deg, var(--mn-green-1), var(--mn-green-2));
@@ -107,7 +107,7 @@
     margin-top:10px;
   }
 .bottom-nav{
-  position:fixed;bottom:0;left:0;right:0;
+  position:sticky;bottom:0;
   background:rgba(255,255,255,0.97);
   border-top:1px solid var(--border);
   display:flex;overflow-x:auto;
@@ -124,12 +124,25 @@
   font-size:9.5px;font-weight:600;
   white-space:nowrap;
 }
-.nav-item .nav-icon{font-size:17px;line-height:1;}
+.nav-item .nav-icon{width:20px;height:20px;display:flex;align-items:center;justify-content:center;}
+.nav-item .nav-icon svg{width:20px;height:20px;}
 .nav-item.active{color:var(--mn-green-1);background:rgba(15,155,108,0.08);}
+
+
+body{background:var(--bg);}
+.app-frame{
+  max-width:480px;margin:0 auto;background:#ffffff;
+  min-height:100vh;display:flex;flex-direction:column;position:relative;
+}
+@media (min-width:560px){
+  .app-frame{box-shadow:0 0 60px rgba(30,41,59,0.12);}
+}
+.page-body{flex:1 1 auto;}
 
 </style>
 </head>
 <body>
+<div class="app-frame">
 
 <header>
   <div class="logo-row">
@@ -139,6 +152,7 @@
   <h1>Контент-конвейер</h1>
   <div class="subtitle">Листай вправо — этапы; фильтруй по проекту</div>
 </header>
+<div class="page-body">
 
 <div class="filter-row" id="filterRow"></div>
 
@@ -216,14 +230,16 @@ function render(){
 render();
 </script>
 
+</div>
 <nav class="bottom-nav">
-<a class="nav-item" href="index.html"><span class="nav-icon">🏠</span>Обзор</a>
-<a class="nav-item" href="leads.html"><span class="nav-icon">🎯</span>Лиды</a>
-<a class="nav-item active" href="content.html"><span class="nav-icon">📋</span>Контент</a>
-<a class="nav-item" href="money.html"><span class="nav-icon">💰</span>Деньги</a>
-<a class="nav-item" href="tasks.html"><span class="nav-icon">✅</span>Задачи</a>
-<a class="nav-item" href="compare.html"><span class="nav-icon">⚖️</span>Сравнение</a>
-<a class="nav-item" href="notifications.html"><span class="nav-icon">🔔</span>Алерты</a>
+<a class="nav-item" href="index.html"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 10 3l7 6.5"/><path d="M5 8.5V17h10V8.5"/><path d="M8 17v-5h4v5"/></svg></span>Обзор</a>
+<a class="nav-item" href="leads.html"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="10" cy="10" r="6.3"/><circle cx="10" cy="10" r="3.2"/><circle cx="10" cy="10" r="0.6" fill="currentColor" stroke="none"/></svg></span>Лиды</a>
+<a class="nav-item active" href="content.html"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="4.2" height="12" rx="1"/><rect x="8.4" y="4" width="4.2" height="8" rx="1"/><rect x="13.8" y="4" width="3.2" height="5" rx="1"/></svg></span>Контент</a>
+<a class="nav-item" href="money.html"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="15" height="9.5" rx="2"/><circle cx="10" cy="10.75" r="2.3"/><path d="M2.5 9.2h2M15.5 9.2h2"/></svg></span>Деньги</a>
+<a class="nav-item" href="tasks.html"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="14" height="14" rx="3.5"/><path d="M6.5 10.3 9 12.8l4.5-5.6"/></svg></span>Задачи</a>
+<a class="nav-item" href="compare.html"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16h5M9 3v13"/><path d="M9 5h7"/><path d="M3 9l2.5-4L8 9M12 9l2.5-4L17 9"/><path d="M3 9c0 1.4 1.1 2.5 2.5 2.5S8 10.4 8 9M12 9c0 1.4 1.1 2.5 2.5 2.5S17 10.4 17 9"/></svg></span>Сравнение</a>
+<a class="nav-item" href="notifications.html"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 14.5V9a5 5 0 0 1 10 0v5.5l1.5 2H3.5z"/><path d="M8 17a2 2 0 0 0 4 0"/></svg></span>Алерты</a>
 </nav>
+</div>
 </body>
 </html>
