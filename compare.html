@@ -23,7 +23,7 @@
     font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
     background:var(--bg);
     color:var(--ink);
-    padding-bottom:40px;
+    padding-bottom:86px;
   }
   header{
     background:linear-gradient(135deg, var(--mn-green-1), var(--mn-green-2));
@@ -87,6 +87,27 @@
     text-align:center;font-size:11px;color:var(--ink-light);
     margin-top:22px;
   }
+.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;
+  background:rgba(255,255,255,0.97);
+  border-top:1px solid var(--border);
+  display:flex;overflow-x:auto;
+  padding:8px 6px calc(8px + env(safe-area-inset-bottom));
+  gap:2px;
+  backdrop-filter:blur(6px);
+  z-index:100;
+}
+.nav-item{
+  flex:0 0 auto;min-width:64px;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:6px 8px;border-radius:10px;
+  text-decoration:none;color:var(--ink-light);
+  font-size:9.5px;font-weight:600;
+  white-space:nowrap;
+}
+.nav-item .nav-icon{font-size:17px;line-height:1;}
+.nav-item.active{color:var(--mn-green-1);background:rgba(15,155,108,0.08);}
+
 </style>
 </head>
 <body>
@@ -181,5 +202,14 @@ new Chart(document.getElementById('compareChart'), {
 });
 </script>
 
+<nav class="bottom-nav">
+<a class="nav-item" href="index.html"><span class="nav-icon">🏠</span>Обзор</a>
+<a class="nav-item" href="leads.html"><span class="nav-icon">🎯</span>Лиды</a>
+<a class="nav-item" href="content.html"><span class="nav-icon">📋</span>Контент</a>
+<a class="nav-item" href="money.html"><span class="nav-icon">💰</span>Деньги</a>
+<a class="nav-item" href="tasks.html"><span class="nav-icon">✅</span>Задачи</a>
+<a class="nav-item active" href="compare.html"><span class="nav-icon">⚖️</span>Сравнение</a>
+<a class="nav-item" href="notifications.html"><span class="nav-icon">🔔</span>Алерты</a>
+</nav>
 </body>
 </html>
