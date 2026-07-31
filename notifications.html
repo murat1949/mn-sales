@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MN Sales — Уведомления</title>
+<style>
+  :root{
+    --mn-green-1:#0f9b6c;
+    --mn-green-2:#0a7a56;
+    --bg:#f4f6f5;
+    --card:#ffffff;
+    --ink:#1e293b;
+    --ink-light:#64748b;
+    --border:#e6eae8;
+    --tg:#229ed9;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    padding-bottom:40px;
+  }
+  header{
+    background:linear-gradient(135deg, var(--mn-green-1), var(--mn-green-2));
+    color:#fff;
+    padding:20px 18px 26px;
+    border-radius:0 0 20px 20px;
+  }
+  .logo-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .logo-sq{
+    width:34px;height:34px;border-radius:8px;
+    background:rgba(255,255,255,0.18);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:15px;letter-spacing:0.5px;
+  }
+  .brand{font-size:13px;letter-spacing:1.5px;opacity:0.85;text-transform:uppercase;}
+  h1{font-size:22px;font-weight:700;margin-bottom:4px;}
+  .subtitle{font-size:13px;opacity:0.85;}
+
+  .container{padding:16px;max-width:520px;margin:0 auto;}
+
+  .tg-card{
+    background:var(--card);border-radius:16px;border:1px solid var(--border);
+    padding:14px 16px;margin-top:-30px;
+    box-shadow:0 8px 24px rgba(15,155,108,0.12);
+    display:flex;align-items:center;gap:12px;
+  }
+  .tg-icon{
+    width:38px;height:38px;border-radius:10px;background:var(--tg);
+    display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;flex-shrink:0;
+  }
+  .tg-info{flex:1;}
+  .tg-name{font-size:13px;font-weight:700;}
+  .tg-sub{font-size:11px;color:var(--ink-light);margin-top:2px;}
+  .tg-status{
+    font-size:11px;font-weight:700;color:var(--mn-green-1);
+    background:rgba(15,155,108,0.1);padding:4px 9px;border-radius:999px;
+  }
+
+  .section-title{
+    font-size:14px;font-weight:700;color:var(--ink);
+    margin:20px 0 10px;display:flex;justify-content:space-between;align-items:center;
+  }
+  .section-title span.hint{font-size:11px;font-weight:500;color:var(--ink-light);}
+
+  .filter-row{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;}
+  .filter-chip{
+    flex-shrink:0;font-size:12px;font-weight:600;
+    padding:6px 12px;border-radius:999px;
+    border:1px solid var(--border);background:var(--card);color:var(--ink-light);
+    cursor:pointer;white-space:nowrap;
+  }
+  .filter-chip.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .filter-chip .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;}
+  .dot.tr{background:#3b82f6;}
+  .dot.mn{background:var(--mn-green-1);}
+  .dot.cons{background:#a855f7;}
+  .dot.deal{background:#e0a336;}
+
+  .feed{display:flex;flex-direction:column;gap:8px;}
+  .alert{
+    background:var(--card);border:1px solid var(--border);border-radius:12px;
+    padding:12px 14px;display:flex;gap:11px;
+  }
+  .alert-emoji{font-size:18px;flex-shrink:0;}
+  .alert-body{flex:1;}
+  .alert-text{font-size:13px;font-weight:600;line-height:1.35;}
+  .alert-meta{font-size:11px;color:var(--ink-light);margin-top:4px;display:flex;align-items:center;gap:5px;}
+  .alert-time{font-size:10.5px;color:var(--ink-light);white-space:nowrap;flex-shrink:0;}
+
+  footer{
+    text-align:center;font-size:11px;color:var(--ink-light);
+    margin-top:22px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-row">
+    <div class="logo-sq">MN</div>
+    <div class="brand">MN Sales · Продвижение</div>
+  </div>
+  <h1>Уведомления</h1>
+  <div class="subtitle">Алерты о новых лидах и сделках</div>
+</header>
+
+<div class="container">
+
+  <div class="tg-card">
+    <div class="tg-icon">✈</div>
+    <div class="tg-info">
+      <div class="tg-name">Telegram-бот подключён</div>
+      <div class="tg-sub">Присылает алерты в реальном времени</div>
+    </div>
+    <div class="tg-status">Активен</div>
+  </div>
+
+  <div class="section-title">Лента <span class="hint">сегодня</span></div>
+
+  <div class="filter-row" id="filterRow"></div>
+
+  <div class="feed" id="feed"></div>
+
+</div>
+
+<footer>MN Sales — прототип, тестовые данные</footer>
+
+<script>
+const projLabels = { tr:'Travel Radar', mn:'MN Systems', cons:'Консалтинг' };
+
+const alerts = [
+  { emoji:'💰', text:'Новая продажа: клиника заказала MN Systems (клиники)', proj:'mn', kind:'deal', time:'14:32' },
+  { emoji:'👤', text:'Новый лид в WhatsApp: логистическая компания из Шымкента', proj:'mn', kind:'lead', time:'13:10' },
+  { emoji:'🛒', text:'Продажа на Gumroad: KZ Travel Radar, $1', proj:'tr', kind:'deal', time:'11:47' },
+  { emoji:'👤', text:'Заявка на экспресс-сессию с сайта', proj:'cons', kind:'lead', time:'10:22' },
+  { emoji:'👤', text:'Новый подписчик написал в директ @kazakhstantravel.guide', proj:'tr', kind:'lead', time:'09:05' },
+  { emoji:'💰', text:'Оплата: логистическая компания подтвердила установку', proj:'mn', kind:'deal', time:'08:41' }
+];
+
+let activeFilter = 'all';
+
+const filterRow = document.getElementById('filterRow');
+const filters = [{key:'all', label:'Все'}, {key:'tr', label:'Travel Radar', dot:'tr'}, {key:'mn', label:'MN Systems', dot:'mn'}, {key:'cons', label:'Консалтинг', dot:'cons'}];
+filters.forEach(f => {
+  const chip = document.createElement('div');
+  chip.className = 'filter-chip' + (f.key === 'all' ? ' active' : '');
+  chip.innerHTML = (f.dot ? `<span class="dot ${f.dot}"></span>` : '') + f.label;
+  chip.addEventListener('click', () => {
+    activeFilter = f.key;
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    render();
+  });
+  filterRow.appendChild(chip);
+});
+
+function render(){
+  const feed = document.getElementById('feed');
+  feed.innerHTML = '';
+  alerts
+    .filter(a => activeFilter === 'all' || a.proj === activeFilter)
+    .forEach(a => {
+      const el = document.createElement('div');
+      el.className = 'alert';
+      el.innerHTML = `
+        <div class="alert-emoji">${a.emoji}</div>
+        <div class="alert-body">
+          <div class="alert-text">${a.text}</div>
+          <div class="alert-meta"><span class="dot ${a.proj}"></span>${projLabels[a.proj]}</div>
+        </div>
+        <div class="alert-time">${a.time}</div>
+      `;
+      feed.appendChild(el);
+    });
+}
+render();
+</script>
+
+</body>
+</html>
