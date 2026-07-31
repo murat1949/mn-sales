@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MN Sales — Воронка лидов</title>
+<style>
+  :root{
+    --mn-green-1:#0f9b6c;
+    --mn-green-2:#0a7a56;
+    --bg:#f4f6f5;
+    --card:#ffffff;
+    --ink:#1e293b;
+    --ink-light:#64748b;
+    --border:#e6eae8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    padding-bottom:40px;
+  }
+  header{
+    background:linear-gradient(135deg, var(--mn-green-1), var(--mn-green-2));
+    color:#fff;
+    padding:20px 18px 26px;
+    border-radius:0 0 20px 20px;
+  }
+  .logo-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .logo-sq{
+    width:34px;height:34px;border-radius:8px;
+    background:rgba(255,255,255,0.18);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:15px;letter-spacing:0.5px;
+  }
+  .brand{font-size:13px;letter-spacing:1.5px;opacity:0.85;text-transform:uppercase;}
+  h1{font-size:22px;font-weight:700;margin-bottom:4px;}
+  .subtitle{font-size:13px;opacity:0.85;}
+
+  .container{padding:16px;max-width:520px;margin:0 auto;}
+
+  .hint-row{
+    font-size:12px;color:var(--ink-light);
+    margin:-14px 0 16px;padding:0 2px;
+  }
+
+  .funnel{display:flex;flex-direction:column;gap:8px;}
+
+  .stage{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:14px;
+    overflow:hidden;
+    cursor:pointer;
+    transition:box-shadow 0.15s ease;
+  }
+  .stage:active{box-shadow:0 2px 8px rgba(15,155,108,0.15);}
+
+  .stage-head{
+    display:flex;align-items:center;gap:12px;
+    padding:14px 16px;
+  }
+  .stage-bar-wrap{flex:1;}
+  .stage-name{font-size:13.5px;font-weight:700;margin-bottom:6px;}
+  .stage-bar-bg{
+    height:8px;border-radius:5px;background:var(--bg);overflow:hidden;
+  }
+  .stage-bar-fill{
+    height:100%;border-radius:5px;
+    background:linear-gradient(90deg, var(--mn-green-1), var(--mn-green-2));
+  }
+  .stage-count{
+    font-size:19px;font-weight:800;min-width:34px;text-align:right;
+  }
+  .chevron{
+    font-size:11px;color:var(--ink-light);
+    transition:transform 0.15s ease;
+  }
+  .stage.open .chevron{transform:rotate(180deg);}
+
+  .stage-detail{
+    max-height:0;overflow:hidden;
+    transition:max-height 0.2s ease;
+    border-top:1px solid transparent;
+  }
+  .stage.open .stage-detail{
+    max-height:200px;
+    border-top:1px solid var(--border);
+  }
+  .detail-row{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 16px;
+    font-size:12.5px;
+  }
+  .detail-row:not(:last-child){border-bottom:1px solid var(--border);}
+  .detail-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .detail-dot.tr{background:#3b82f6;}
+  .detail-dot.mn{background:var(--mn-green-1);}
+  .detail-dot.cons{background:#a855f7;}
+  .detail-name{flex:1;color:var(--ink-light);}
+  .detail-count{font-weight:700;}
+
+  .arrow-down{
+    text-align:center;color:var(--ink-light);font-size:11px;
+    padding:2px 0;
+  }
+
+  .section-title{
+    font-size:14px;font-weight:700;color:var(--ink);
+    margin:22px 0 10px;
+  }
+
+  .conv-card{
+    background:var(--card);border-radius:14px;border:1px solid var(--border);
+    padding:14px 16px;display:flex;justify-content:space-between;align-items:center;
+  }
+  .conv-card .lbl{font-size:12.5px;color:var(--ink-light);}
+  .conv-card .val{font-size:15px;font-weight:800;color:var(--mn-green-1);}
+
+  footer{
+    text-align:center;font-size:11px;color:var(--ink-light);
+    margin-top:26px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-row">
+    <div class="logo-sq">MN</div>
+    <div class="brand">MN Sales · Продвижение</div>
+  </div>
+  <h1>Воронка лидов</h1>
+  <div class="subtitle">Все проекты вместе — тапни на стадию для деталей</div>
+</header>
+
+<div class="container">
+
+  <div class="hint-row">Нажми на любую стадию, чтобы увидеть разбивку по проектам</div>
+
+  <div class="funnel" id="funnel"></div>
+
+  <div class="section-title">Конверсия по воронке</div>
+  <div class="conv-card">
+    <span class="lbl">Из «Новый» в «Оплата»</span>
+    <span class="val" id="convTotal">—</span>
+  </div>
+
+</div>
+
+<footer>MN Sales — прототип, тестовые данные</footer>
+
+<script>
+// ---- тестовые данные ----
+const stages = [
+  { key:'new',  name:'Новый',                by:{tr:12, mn:18, cons:6} },
+  { key:'talk', name:'В диалоге',             by:{tr:5,  mn:11, cons:3} },
+  { key:'demo', name:'Демо / сессия назначена', by:{tr:0,  mn:6,  cons:2} },
+  { key:'paid', name:'Оплата',                by:{tr:2,  mn:3,  cons:0} }
+];
+
+const projLabels = { tr:'Travel Radar', mn:'MN Systems', cons:'Консалтинг' };
+
+function total(stage){ return stage.by.tr + stage.by.mn + stage.by.cons; }
+
+const maxCount = Math.max(...stages.map(total));
+
+const funnel = document.getElementById('funnel');
+stages.forEach((stage, i) => {
+  const t = total(stage);
+  const pct = Math.max(6, Math.round((t / maxCount) * 100));
+
+  const el = document.createElement('div');
+  el.className = 'stage';
+  el.innerHTML = `
+    <div class="stage-head">
+      <div class="stage-bar-wrap">
+        <div class="stage-name">${stage.name}</div>
+        <div class="stage-bar-bg"><div class="stage-bar-fill" style="width:${pct}%"></div></div>
+      </div>
+      <div class="stage-count">${t}</div>
+      <div class="chevron">▼</div>
+    </div>
+    <div class="stage-detail">
+      ${Object.keys(stage.by).map(k => `
+        <div class="detail-row">
+          <span class="detail-dot ${k}"></span>
+          <span class="detail-name">${projLabels[k]}</span>
+          <span class="detail-count">${stage.by[k]}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  el.addEventListener('click', () => el.classList.toggle('open'));
+  funnel.appendChild(el);
+
+  if (i < stages.length - 1) {
+    const arrow = document.createElement('div');
+    arrow.className = 'arrow-down';
+    arrow.textContent = '↓';
+    funnel.appendChild(arrow);
+  }
+});
+
+const firstTotal = total(stages[0]);
+const lastTotal = total(stages[stages.length - 1]);
+document.getElementById('convTotal').textContent =
+  Math.round((lastTotal / firstTotal) * 100) + '% (' + lastTotal + ' из ' + firstTotal + ')';
+</script>
+
+</body>
+</html>
