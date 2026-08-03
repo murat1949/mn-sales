@@ -63,6 +63,7 @@
     background:var(--mn-green-1);color:#fff;border:none;border-radius:10px;
     padding:0 18px;font-size:14px;font-weight:700;cursor:pointer;
   }
+  .add-btn:disabled{opacity:0.5;}
 
   .filter-row{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;}
   .filter-chip{
@@ -73,6 +74,7 @@
   }
   .filter-chip.active{background:var(--ink);color:#fff;border-color:var(--ink);}
   .filter-chip .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;}
+  .dot.lift{background:#f59e0b;}
   .dot.tr{background:#3b82f6;}
   .dot.mn{background:var(--mn-green-1);}
   .dot.cons{background:#a855f7;}
@@ -92,6 +94,12 @@
   .task-text{font-size:13.5px;font-weight:600;}
   .task.done .task-text{text-decoration:line-through;color:var(--ink-light);}
   .task-proj{font-size:11px;color:var(--ink-light);margin-top:3px;display:flex;align-items:center;gap:5px;}
+  .task-del{
+    flex-shrink:0;width:24px;height:24px;border-radius:8px;border:1px solid var(--border);
+    background:var(--bg);display:flex;align-items:center;justify-content:center;
+    font-size:12px;color:#dc2626;
+  }
+  .empty-hint{padding:14px;font-size:12px;color:var(--ink-light);text-align:center;}
 
   footer{
     text-align:center;font-size:11px;color:var(--ink-light);
@@ -141,7 +149,7 @@ body{background:var(--bg);}
     <div class="brand">MN Sales · Продвижение</div>
   </div>
   <h1>Задачи на сегодня</h1>
-  <div class="subtitle">Пятница, 31 июля</div>
+  <div class="subtitle" id="dateSubtitle"></div>
 </header>
 <div class="page-body">
 
@@ -162,28 +170,40 @@ body{background:var(--bg);}
 
   <div class="filter-row" id="filterRow"></div>
 
-  <div class="tasks" id="taskList"></div>
+  <div class="tasks" id="taskList"><div class="empty-hint">Загрузка…</div></div>
 
 </div>
 
-<footer>MN Sales — прототип, тестовые данные (не сохраняется при перезагрузке)</footer>
+<footer>MN Sales — данные сохраняются в базе</footer>
 
 <script>
-const projLabels = { tr:'Travel Radar', mn:'MN Systems', cons:'Консалтинг' };
+const SUPABASE_URL = 'https://swpnpxhoaxcnllieejsn.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN3cG5weGhvYXhjbmxsaWVlanNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3OTA2OTMsImV4cCI6MjEwMDM2NjY5M30.vpAREIJqgM3SdfqzavSWYJ7uKblcYLdSVZ5iG6KsMc0';
 
-let tasks = [
-  { text:'10 контактов клиникам Алматы (WhatsApp)', proj:'mn', done:false },
-  { text:'Смонтировать видео по Кок-Тобе', proj:'tr', done:false },
-  { text:'Ответить на 2 заявки с сайта', proj:'cons', done:false },
-  { text:'Опубликовать пост про кейс BenzoGasStroy', proj:'cons', done:true },
-  { text:'Проверить статистику вчерашних Reels', proj:'tr', done:true },
-  { text:'Отправить коммерческое предложение логистике', proj:'mn', done:false }
-];
+async function sb(path, options = {}) {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    ...options,
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': options.prefer || 'return=representation',
+      ...(options.headers || {})
+    }
+  });
+  if (!res.ok) { console.error(await res.text()); throw new Error('Supabase error ' + res.status); }
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
 
+document.getElementById('dateSubtitle').textContent = new Date().toLocaleDateString('ru-RU', { weekday:'long', day:'numeric', month:'long' });
+
+const projLabels = { lift:'Лифты', tr:'Travel Radar', mn:'MN Systems', cons:'Консалтинг' };
+let tasks = [];
 let activeFilter = 'all';
 
 const filterRow = document.getElementById('filterRow');
-const filters = [{key:'all', label:'Все'}, {key:'tr', label:'Travel Radar', dot:'tr'}, {key:'mn', label:'MN Systems', dot:'mn'}, {key:'cons', label:'Консалтинг', dot:'cons'}];
+const filters = [{key:'all', label:'Все'}, {key:'lift', label:'Лифты', dot:'lift'}, {key:'tr', label:'Travel Radar', dot:'tr'}, {key:'mn', label:'MN Systems', dot:'mn'}, {key:'cons', label:'Консалтинг', dot:'cons'}];
 filters.forEach(f => {
   const chip = document.createElement('div');
   chip.className = 'filter-chip' + (f.key === 'all' ? ' active' : '');
@@ -197,47 +217,80 @@ filters.forEach(f => {
   filterRow.appendChild(chip);
 });
 
+async function loadTasks(){
+  tasks = await sb('mnsales_tasks?select=*&order=created_at.asc');
+  render();
+}
+
+function escapeHtml(s){
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
 function render(){
   const list = document.getElementById('taskList');
   list.innerHTML = '';
-  const visible = tasks.filter(t => activeFilter === 'all' || t.proj === activeFilter);
+  const visible = tasks.filter(t => activeFilter === 'all' || t.project === activeFilter);
+
+  if (!visible.length) {
+    list.innerHTML = '<div class="empty-hint">Пока пусто</div>';
+  }
 
   visible.forEach((t) => {
-    const idx = tasks.indexOf(t);
     const el = document.createElement('div');
-    el.className = 'task' + (t.done ? ' done' : '');
+    el.className = 'task' + (t.is_done ? ' done' : '');
     el.innerHTML = `
-      <div class="check">${t.done ? '✓' : ''}</div>
+      <div class="check">${t.is_done ? '✓' : ''}</div>
       <div class="task-body">
-        <div class="task-text">${t.text}</div>
-        <div class="task-proj"><span class="dot ${t.proj}"></span>${projLabels[t.proj]}</div>
+        <div class="task-text">${escapeHtml(t.title)}</div>
+        <div class="task-proj"><span class="dot ${t.project || 'lift'}"></span>${projLabels[t.project] || t.project || ''}</div>
       </div>
+      <div class="task-del" data-del="${t.id}">✕</div>
     `;
-    el.addEventListener('click', () => {
-      tasks[idx].done = !tasks[idx].done;
-      render();
-    });
+    el.querySelector('.task-body').addEventListener('click', () => toggleTask(t.id, !t.is_done));
+    el.querySelector('.check').addEventListener('click', () => toggleTask(t.id, !t.is_done));
+    el.querySelector('[data-del]').addEventListener('click', (e) => { e.stopPropagation(); deleteTask(t.id); });
     list.appendChild(el);
   });
 
   const total = tasks.length;
-  const done = tasks.filter(t => t.done).length;
+  const done = tasks.filter(t => t.is_done).length;
   document.getElementById('progressNum').textContent = done + ' / ' + total;
   document.getElementById('progressFill').style.width = (total ? (done/total*100) : 0) + '%';
 }
 
+async function toggleTask(id, isDone){
+  await sb('mnsales_tasks?id=eq.' + id, { method:'PATCH', body: JSON.stringify({ is_done: isDone, completed_at: isDone ? new Date().toISOString() : null }) });
+  await loadTasks();
+}
+
+async function deleteTask(id){
+  if (!confirm('Удалить задачу?')) return;
+  await sb('mnsales_tasks?id=eq.' + id, { method:'DELETE', prefer:'return=minimal' });
+  await loadTasks();
+}
+
 document.getElementById('addBtn').addEventListener('click', addTask);
 document.getElementById('addInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') addTask(); });
-function addTask(){
+
+async function addTask(){
   const input = document.getElementById('addInput');
   const val = input.value.trim();
   if (!val) return;
-  tasks.push({ text:val, proj: activeFilter === 'all' ? 'mn' : activeFilter, done:false });
-  input.value = '';
-  render();
+  const btn = document.getElementById('addBtn');
+  btn.disabled = true;
+  try {
+    const proj = activeFilter === 'all' ? 'lift' : activeFilter;
+    await sb('mnsales_tasks', { method:'POST', body: JSON.stringify({ title: val, project: proj, is_done: false }) });
+    input.value = '';
+    await loadTasks();
+  } finally {
+    btn.disabled = false;
+  }
 }
 
-render();
+loadTasks();
 </script>
 
 </div>
