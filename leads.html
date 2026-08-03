@@ -248,6 +248,16 @@ async function sb(path, options = {}) {
   return text ? JSON.parse(text) : null;
 }
 
+const TG_TOKEN = "8984664709:AAF83MQd5lzDbGux0hnllWuyO-u0DDg0rdo";
+const TG_CHAT = "843682379";
+function sendTelegram(text) {
+  fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chat_id: TG_CHAT, text, parse_mode: "HTML" })
+  }).catch(err => console.warn("Telegram уведомление не отправлено:", err));
+}
+
 const stageOrder = ['new', 'dialog', 'demo', 'payment'];
 const stageNames = { new:'Новый', dialog:'В диалоге', demo:'Демо-сессия', payment:'Оплата' };
 const projLabels = { lift:'Лифты', tr:'Travel Radar', mn:'MN Systems', cons:'Консалтинг' };
@@ -348,6 +358,11 @@ async function advanceLead(id){
   if (idx >= stageOrder.length - 1) return;
   const nextStage = stageOrder[idx + 1];
   await sb('mnsales_leads?id=eq.' + id, { method:'PATCH', body: JSON.stringify({ stage: nextStage, updated_at: new Date().toISOString() }) });
+  if (nextStage === 'payment') {
+    sendTelegram(`💰 <b>Оплата</b>\n${lead.company_name} (${projLabels[lead.project] || lead.project}) дошла до стадии «Оплата»`);
+  } else {
+    sendTelegram(`➡️ ${lead.company_name}: переведён на стадию «${stageNames[nextStage]}»`);
+  }
   await loadLeads();
 }
 
@@ -368,6 +383,7 @@ async function addLead(){
   btn.disabled = true;
   try {
     await sb('mnsales_leads', { method:'POST', body: JSON.stringify({ company_name: name, project: selectedProj, stage: 'new' }) });
+    sendTelegram(`📞 <b>Новый лид</b>\n${name} (${projLabels[selectedProj]})`);
     input.value = '';
     await loadLeads();
   } finally {
