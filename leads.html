@@ -42,8 +42,37 @@
 
   .hint-row{
     font-size:12px;color:var(--ink-light);
-    margin:-14px 0 16px;padding:0 2px;
+    margin:0 0 16px;padding:0 2px;
   }
+
+  .add-card{
+    background:var(--card);border:1px solid var(--border);border-radius:14px;
+    padding:14px;margin:-30px 0 18px;box-shadow:0 8px 24px rgba(15,155,108,0.12);
+  }
+  .add-title{font-size:12.5px;font-weight:700;margin-bottom:10px;color:var(--ink);}
+  .add-input{
+    width:100%;border:1px solid var(--border);border-radius:10px;
+    padding:11px 12px;font-size:13px;background:var(--bg);
+    font-family:inherit;margin-bottom:10px;
+  }
+  .proj-row{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+  .proj-chip{
+    font-size:11.5px;font-weight:600;padding:6px 11px;border-radius:999px;
+    border:1px solid var(--border);background:var(--bg);color:var(--ink-light);
+    cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:5px;
+  }
+  .proj-chip.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .proj-chip .dot{width:7px;height:7px;border-radius:50%;}
+  .dot.lift{background:#f59e0b;}
+  .dot.tr{background:#3b82f6;}
+  .dot.mn{background:var(--mn-green-1);}
+  .dot.cons{background:#a855f7;}
+
+  .add-btn{
+    width:100%;background:var(--mn-green-1);color:#fff;border:none;border-radius:10px;
+    padding:12px;font-size:13.5px;font-weight:700;cursor:pointer;
+  }
+  .add-btn:disabled{opacity:0.5;}
 
   .funnel{display:flex;flex-direction:column;gap:8px;}
 
@@ -52,14 +81,11 @@
     border:1px solid var(--border);
     border-radius:14px;
     overflow:hidden;
-    cursor:pointer;
-    transition:box-shadow 0.15s ease;
   }
-  .stage:active{box-shadow:0 2px 8px rgba(15,155,108,0.15);}
 
   .stage-head{
     display:flex;align-items:center;gap:12px;
-    padding:14px 16px;
+    padding:14px 16px;cursor:pointer;
   }
   .stage-bar-wrap{flex:1;}
   .stage-name{font-size:13.5px;font-weight:700;margin-bottom:6px;}
@@ -81,25 +107,32 @@
 
   .stage-detail{
     max-height:0;overflow:hidden;
-    transition:max-height 0.2s ease;
+    transition:max-height 0.25s ease;
     border-top:1px solid transparent;
   }
   .stage.open .stage-detail{
-    max-height:200px;
+    max-height:900px;
     border-top:1px solid var(--border);
   }
-  .detail-row{
+  .lead-row{
     display:flex;align-items:center;gap:10px;
-    padding:10px 16px;
+    padding:11px 16px;
     font-size:12.5px;
   }
-  .detail-row:not(:last-child){border-bottom:1px solid var(--border);}
-  .detail-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-  .detail-dot.tr{background:#3b82f6;}
-  .detail-dot.mn{background:var(--mn-green-1);}
-  .detail-dot.cons{background:#a855f7;}
-  .detail-name{flex:1;color:var(--ink-light);}
-  .detail-count{font-weight:700;}
+  .lead-row:not(:last-child){border-bottom:1px solid var(--border);}
+  .lead-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .lead-info{flex:1;min-width:0;}
+  .lead-name{font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .lead-sub{color:var(--ink-light);font-size:11px;margin-top:2px;}
+  .lead-actions{display:flex;gap:6px;flex-shrink:0;}
+  .lead-btn{
+    border:1px solid var(--border);background:var(--bg);border-radius:8px;
+    width:26px;height:26px;display:flex;align-items:center;justify-content:center;
+    font-size:13px;cursor:pointer;color:var(--ink-light);
+  }
+  .lead-btn.next{color:var(--mn-green-1);border-color:var(--mn-green-1);}
+  .lead-btn.del{color:#dc2626;}
+  .empty-hint{padding:14px 16px;font-size:12px;color:var(--ink-light);}
 
   .arrow-down{
     text-align:center;color:var(--ink-light);font-size:11px;
@@ -166,15 +199,24 @@ body{background:var(--bg);}
     <div class="brand">MN Sales · Продвижение</div>
   </div>
   <h1>Воронка лидов</h1>
-  <div class="subtitle">Все проекты вместе — тапни на стадию для деталей</div>
+  <div class="subtitle">Реальные данные — тапни на стадию для деталей</div>
 </header>
 <div class="page-body">
 
 <div class="container">
 
-  <div class="hint-row">Нажми на любую стадию, чтобы увидеть разбивку по проектам</div>
+  <div class="add-card">
+    <div class="add-title">Добавить лида</div>
+    <input class="add-input" id="leadNameInput" placeholder="Название компании" />
+    <div class="proj-row" id="projRow"></div>
+    <button class="add-btn" id="addLeadBtn">+ Добавить в «Новый»</button>
+  </div>
 
-  <div class="funnel" id="funnel"></div>
+  <div class="hint-row">Нажми на стадию, чтобы открыть список. Стрелка у лида — перевести на следующую стадию.</div>
+
+  <div class="funnel" id="funnel">
+    <div class="empty-hint">Загрузка…</div>
+  </div>
 
   <div class="section-title">Конверсия по воронке</div>
   <div class="conv-card">
@@ -184,64 +226,156 @@ body{background:var(--bg);}
 
 </div>
 
-<footer>MN Sales — прототип, тестовые данные</footer>
+<footer>MN Sales — данные сохраняются в базе</footer>
 
 <script>
-// ---- тестовые данные ----
-const stages = [
-  { key:'new',  name:'Новый',                by:{tr:12, mn:18, cons:6} },
-  { key:'talk', name:'В диалоге',             by:{tr:5,  mn:11, cons:3} },
-  { key:'demo', name:'Демо / сессия назначена', by:{tr:0,  mn:6,  cons:2} },
-  { key:'paid', name:'Оплата',                by:{tr:2,  mn:3,  cons:0} }
-];
+const SUPABASE_URL = 'https://swpnpxhoaxcnllieejsn.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN3cG5weGhvYXhjbmxsaWVlanNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3OTA2OTMsImV4cCI6MjEwMDM2NjY5M30.vpAREIJqgM3SdfqzavSWYJ7uKblcYLdSVZ5iG6KsMc0';
 
-const projLabels = { tr:'Travel Radar', mn:'MN Systems', cons:'Консалтинг' };
+async function sb(path, options = {}) {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    ...options,
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': options.prefer || 'return=representation',
+      ...(options.headers || {})
+    }
+  });
+  if (!res.ok) { console.error(await res.text()); throw new Error('Supabase error ' + res.status); }
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
 
-function total(stage){ return stage.by.tr + stage.by.mn + stage.by.cons; }
+const stageOrder = ['new', 'dialog', 'demo', 'payment'];
+const stageNames = { new:'Новый', dialog:'В диалоге', demo:'Демо-сессия', payment:'Оплата' };
+const projLabels = { lift:'Лифты', tr:'Travel Radar', mn:'MN Systems', cons:'Консалтинг' };
+let selectedProj = 'lift';
+let leads = [];
 
-const maxCount = Math.max(...stages.map(total));
-
-const funnel = document.getElementById('funnel');
-stages.forEach((stage, i) => {
-  const t = total(stage);
-  const pct = Math.max(6, Math.round((t / maxCount) * 100));
-
-  const el = document.createElement('div');
-  el.className = 'stage';
-  el.innerHTML = `
-    <div class="stage-head">
-      <div class="stage-bar-wrap">
-        <div class="stage-name">${stage.name}</div>
-        <div class="stage-bar-bg"><div class="stage-bar-fill" style="width:${pct}%"></div></div>
-      </div>
-      <div class="stage-count">${t}</div>
-      <div class="chevron">▼</div>
-    </div>
-    <div class="stage-detail">
-      ${Object.keys(stage.by).map(k => `
-        <div class="detail-row">
-          <span class="detail-dot ${k}"></span>
-          <span class="detail-name">${projLabels[k]}</span>
-          <span class="detail-count">${stage.by[k]}</span>
-        </div>
-      `).join('')}
-    </div>
-  `;
-  el.addEventListener('click', () => el.classList.toggle('open'));
-  funnel.appendChild(el);
-
-  if (i < stages.length - 1) {
-    const arrow = document.createElement('div');
-    arrow.className = 'arrow-down';
-    arrow.textContent = '↓';
-    funnel.appendChild(arrow);
-  }
+const projRow = document.getElementById('projRow');
+Object.keys(projLabels).forEach(k => {
+  const chip = document.createElement('div');
+  chip.className = 'proj-chip' + (k === selectedProj ? ' active' : '');
+  chip.innerHTML = `<span class="dot ${k}"></span>${projLabels[k]}`;
+  chip.addEventListener('click', () => {
+    selectedProj = k;
+    document.querySelectorAll('.proj-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+  });
+  projRow.appendChild(chip);
 });
 
-const firstTotal = total(stages[0]);
-const lastTotal = total(stages[stages.length - 1]);
-document.getElementById('convTotal').textContent =
-  Math.round((lastTotal / firstTotal) * 100) + '% (' + lastTotal + ' из ' + firstTotal + ')';
+async function loadLeads(){
+  leads = await sb('mnsales_leads?select=*&order=created_at.asc');
+  render();
+}
+
+function render(){
+  const funnel = document.getElementById('funnel');
+  funnel.innerHTML = '';
+
+  const counts = stageOrder.map(s => leads.filter(l => l.stage === s).length);
+  const maxCount = Math.max(1, ...counts);
+
+  stageOrder.forEach((stageKey, i) => {
+    const stageLeads = leads.filter(l => l.stage === stageKey);
+    const t = stageLeads.length;
+    const pct = Math.max(6, Math.round((t / maxCount) * 100));
+
+    const el = document.createElement('div');
+    el.className = 'stage';
+    el.innerHTML = `
+      <div class="stage-head">
+        <div class="stage-bar-wrap">
+          <div class="stage-name">${stageNames[stageKey]}</div>
+          <div class="stage-bar-bg"><div class="stage-bar-fill" style="width:${pct}%"></div></div>
+        </div>
+        <div class="stage-count">${t}</div>
+        <div class="chevron">▼</div>
+      </div>
+      <div class="stage-detail">
+        ${stageLeads.length ? stageLeads.map(l => `
+          <div class="lead-row">
+            <span class="lead-dot ${l.project}"></span>
+            <div class="lead-info">
+              <div class="lead-name">${escapeHtml(l.company_name)}</div>
+              <div class="lead-sub">${projLabels[l.project] || l.project}${l.deal_amount > 0 ? ' · ' + Number(l.deal_amount).toLocaleString('ru-RU') + ' ₸' : ''}</div>
+            </div>
+            <div class="lead-actions">
+              ${stageKey !== 'payment' ? `<div class="lead-btn next" data-next="${l.id}">▶</div>` : ''}
+              <div class="lead-btn del" data-del="${l.id}">✕</div>
+            </div>
+          </div>
+        `).join('') : '<div class="empty-hint">Пока пусто</div>'}
+      </div>
+    `;
+    el.querySelector('.stage-head').addEventListener('click', () => el.classList.toggle('open'));
+    funnel.appendChild(el);
+
+    if (i < stageOrder.length - 1) {
+      const arrow = document.createElement('div');
+      arrow.className = 'arrow-down';
+      arrow.textContent = '↓';
+      funnel.appendChild(arrow);
+    }
+  });
+
+  funnel.querySelectorAll('[data-next]').forEach(btn => {
+    btn.addEventListener('click', (e) => { e.stopPropagation(); advanceLead(btn.dataset.next); });
+  });
+  funnel.querySelectorAll('[data-del]').forEach(btn => {
+    btn.addEventListener('click', (e) => { e.stopPropagation(); deleteLead(btn.dataset.del); });
+  });
+
+  const firstTotal = leads.length || 1;
+  const lastTotal = leads.filter(l => l.stage === 'payment').length;
+  document.getElementById('convTotal').textContent =
+    Math.round((lastTotal / firstTotal) * 100) + '% (' + lastTotal + ' из ' + leads.length + ')';
+}
+
+function escapeHtml(s){
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+async function advanceLead(id){
+  const lead = leads.find(l => l.id === id);
+  if (!lead) return;
+  const idx = stageOrder.indexOf(lead.stage);
+  if (idx >= stageOrder.length - 1) return;
+  const nextStage = stageOrder[idx + 1];
+  await sb('mnsales_leads?id=eq.' + id, { method:'PATCH', body: JSON.stringify({ stage: nextStage, updated_at: new Date().toISOString() }) });
+  await loadLeads();
+}
+
+async function deleteLead(id){
+  if (!confirm('Удалить этого лида?')) return;
+  await sb('mnsales_leads?id=eq.' + id, { method:'DELETE', prefer:'return=minimal' });
+  await loadLeads();
+}
+
+document.getElementById('addLeadBtn').addEventListener('click', addLead);
+document.getElementById('leadNameInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') addLead(); });
+
+async function addLead(){
+  const input = document.getElementById('leadNameInput');
+  const name = input.value.trim();
+  if (!name) return;
+  const btn = document.getElementById('addLeadBtn');
+  btn.disabled = true;
+  try {
+    await sb('mnsales_leads', { method:'POST', body: JSON.stringify({ company_name: name, project: selectedProj, stage: 'new' }) });
+    input.value = '';
+    await loadLeads();
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+loadLeads();
 </script>
 
 </div>
