@@ -34,7 +34,13 @@
     padding:20px 18px 26px;
     border-radius:0 0 20px 20px;
   }
-  .logo-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .logo-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;justify-content:space-between;}
+  .logo-row-left{display:flex;align-items:center;gap:10px;}
+  .net-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.2);border-radius:999px;padding:5px 10px;font-size:9.5px;font-weight:700;color:#fff;transition:background .2s,color .2s;flex-shrink:0;}
+  .net-dot{width:6px;height:6px;border-radius:50%;background:#baffdb;animation:netPulse 1.8s infinite;}
+  .net-pill.offline{background:rgba(255,214,0,0.25);color:#fff3d6;}
+  .net-pill.offline .net-dot{background:#FFD600;animation:none;box-shadow:0 0 6px 1px rgba(255,214,0,0.8);}
+  @keyframes netPulse{0%,100%{opacity:1;}50%{opacity:.3;}}
   .logo-sq{
     width:34px;height:34px;border-radius:8px;
     background:rgba(255,255,255,0.18);
@@ -130,8 +136,9 @@ body{background:var(--bg);}
 
 <header>
   <div class="logo-row">
-    <div class="logo-sq">MN</div>
-    <div class="brand">MN Sales · Продвижение</div>
+    <div class="logo-row-left"><div class="logo-sq">MN</div>
+    <div class="brand">MN Sales · Продвижение</div></div>
+    <span class="net-pill" id="netStatus"><i class="net-dot"></i><span id="netStatusText">ОНЛАЙН</span></span>
   </div>
   <h1>Сравнение проектов</h1>
   <div class="subtitle">Что окупает вложенное время лучше всего</div>
@@ -221,7 +228,7 @@ new Chart(document.getElementById('compareChart'), {
 
 </div>
 <nav class="bottom-nav">
-<a class="nav-item" href="index.html"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 10 3l7 6.5"/><path d="M5 8.5V17h10V8.5"/><path d="M8 17v-5h4v5"/></svg></span>Обзор</a>
+<a class="nav-item" href="overview.html"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 10 3l7 6.5"/><path d="M5 8.5V17h10V8.5"/><path d="M8 17v-5h4v5"/></svg></span>Обзор</a>
 <a class="nav-item" href="leads.html"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="10" cy="10" r="6.3"/><circle cx="10" cy="10" r="3.2"/><circle cx="10" cy="10" r="0.6" fill="currentColor" stroke="none"/></svg></span>Лиды</a>
 <a class="nav-item" href="content.html"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="4.2" height="12" rx="1"/><rect x="8.4" y="4" width="4.2" height="8" rx="1"/><rect x="13.8" y="4" width="3.2" height="5" rx="1"/></svg></span>Контент</a>
 <a class="nav-item" href="money.html"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="15" height="9.5" rx="2"/><circle cx="10" cy="10.75" r="2.3"/><path d="M2.5 9.2h2M15.5 9.2h2"/></svg></span>Деньги</a>
@@ -230,6 +237,24 @@ new Chart(document.getElementById('compareChart'), {
 <a class="nav-item" href="notifications.html"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 14.5V9a5 5 0 0 1 10 0v5.5l1.5 2H3.5z"/><path d="M8 17a2 2 0 0 0 4 0"/></svg></span>Алерты</a>
 </nav>
 </div>
+<script>
+function updateNetStatus(){
+  const pill = document.getElementById('netStatus');
+  const text = document.getElementById('netStatusText');
+  if (!pill) return;
+  if (navigator.onLine) {
+    pill.classList.remove('offline');
+    text.textContent = 'ОНЛАЙН';
+  } else {
+    pill.classList.add('offline');
+    text.textContent = 'ОФЛАЙН';
+  }
+}
+window.addEventListener('online', updateNetStatus);
+window.addEventListener('offline', updateNetStatus);
+document.addEventListener('DOMContentLoaded', updateNetStatus);
+if (document.readyState === 'interactive' || document.readyState === 'complete') updateNetStatus();
+</script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
