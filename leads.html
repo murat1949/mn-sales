@@ -132,6 +132,27 @@
   }
   .lead-btn.next{color:var(--mn-green-1);border-color:var(--mn-green-1);}
   .lead-btn.del{color:#dc2626;}
+  .lead-btn.note{font-size:11px;}
+  .lead-note-preview{
+    color:var(--mn-green-1);font-size:11px;margin-top:4px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;
+  }
+  .lead-row-wrap{border-bottom:1px solid var(--border);}
+  .lead-row-wrap:last-child{border-bottom:none;}
+  .lead-row-wrap .lead-row{border-bottom:none;}
+  .note-editor{
+    display:none;padding:0 16px 12px;
+  }
+  .note-editor.open{display:block;}
+  .note-textarea{
+    width:100%;border:1px solid var(--border);border-radius:10px;
+    padding:9px 10px;font-size:12.5px;font-family:inherit;background:var(--bg);
+    resize:vertical;min-height:56px;margin-bottom:8px;
+  }
+  .note-save-btn{
+    background:var(--mn-green-1);color:#fff;border:none;border-radius:8px;
+    padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;
+  }
   .empty-hint{padding:14px 16px;font-size:12px;color:var(--ink-light);}
 
   .arrow-down{
@@ -307,15 +328,23 @@ function render(){
       </div>
       <div class="stage-detail">
         ${stageLeads.length ? stageLeads.map(l => `
-          <div class="lead-row">
-            <span class="lead-dot ${l.project}"></span>
-            <div class="lead-info">
-              <div class="lead-name">${escapeHtml(l.company_name)}</div>
-              <div class="lead-sub">${projLabels[l.project] || l.project}${l.deal_amount > 0 ? ' · ' + Number(l.deal_amount).toLocaleString('ru-RU') + ' ₸' : ''}</div>
+          <div class="lead-row-wrap">
+            <div class="lead-row">
+              <span class="lead-dot ${l.project}"></span>
+              <div class="lead-info">
+                <div class="lead-name">${escapeHtml(l.company_name)}</div>
+                <div class="lead-sub">${projLabels[l.project] || l.project}${l.deal_amount > 0 ? ' · ' + Number(l.deal_amount).toLocaleString('ru-RU') + ' ₸' : ''}</div>
+                ${l.notes ? `<div class="lead-note-preview">💬 ${escapeHtml(l.notes)}</div>` : ''}
+              </div>
+              <div class="lead-actions">
+                <div class="lead-btn note" data-note-toggle="${l.id}">💬</div>
+                ${stageKey !== 'payment' ? `<div class="lead-btn next" data-next="${l.id}">▶</div>` : ''}
+                <div class="lead-btn del" data-del="${l.id}">✕</div>
+              </div>
             </div>
-            <div class="lead-actions">
-              ${stageKey !== 'payment' ? `<div class="lead-btn next" data-next="${l.id}">▶</div>` : ''}
-              <div class="lead-btn del" data-del="${l.id}">✕</div>
+            <div class="note-editor" id="note-editor-${l.id}">
+              <textarea class="note-textarea" id="note-text-${l.id}" placeholder="Например: отправил рассылку, ждём ответа / не берёт трубку с 28.07 / просил перезвонить в среду">${escapeHtml(l.notes || '')}</textarea>
+              <button class="note-save-btn" data-note-save="${l.id}">Сохранить заметку</button>
             </div>
           </div>
         `).join('') : '<div class="empty-hint">Пока пусто</div>'}
@@ -337,6 +366,18 @@ function render(){
   });
   funnel.querySelectorAll('[data-del]').forEach(btn => {
     btn.addEventListener('click', (e) => { e.stopPropagation(); deleteLead(btn.dataset.del); });
+  });
+  funnel.querySelectorAll('[data-note-toggle]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.noteToggle;
+      const editor = document.getElementById('note-editor-' + id);
+      const isOpen = editor.classList.toggle('open');
+      if (isOpen) document.getElementById('note-text-' + id).focus();
+    });
+  });
+  funnel.querySelectorAll('[data-note-save]').forEach(btn => {
+    btn.addEventListener('click', (e) => { e.stopPropagation(); saveNote(btn.dataset.noteSave); });
   });
 
   const firstTotal = leads.length || 1;
@@ -369,6 +410,12 @@ async function advanceLead(id){
 async function deleteLead(id){
   if (!confirm('Удалить этого лида?')) return;
   await sb('mnsales_leads?id=eq.' + id, { method:'DELETE', prefer:'return=minimal' });
+  await loadLeads();
+}
+
+async function saveNote(id){
+  const text = document.getElementById('note-text-' + id).value.trim();
+  await sb('mnsales_leads?id=eq.' + id, { method:'PATCH', body: JSON.stringify({ notes: text, updated_at: new Date().toISOString() }) });
   await loadLeads();
 }
 
