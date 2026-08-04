@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0f9b6c">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>MN Sales — Воронка лидов</title>
 <style>
   :root{
@@ -473,5 +476,12 @@ loadLeads();
 <a class="nav-item" href="notifications.html"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 14.5V9a5 5 0 0 1 10 0v5.5l1.5 2H3.5z"/><path d="M8 17a2 2 0 0 0 4 0"/></svg></span>Алерты</a>
 </nav>
 </div>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js', { updateViaCache: 'none' }).then(reg => reg.update()).catch(()=>{});
+  });
+}
+</script>
 </body>
 </html>
