@@ -137,6 +137,14 @@
     color:var(--mn-green-1);font-size:11px;margin-top:4px;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;
   }
+  .lead-contact{
+    color:var(--ink);font-size:11.5px;font-weight:600;margin-top:3px;
+  }
+  .note-input{
+    width:100%;border:1px solid var(--border);border-radius:8px;
+    padding:8px 10px;font-size:12.5px;font-family:inherit;background:var(--bg);
+    margin-bottom:8px;
+  }
   .lead-row-wrap{border-bottom:1px solid var(--border);}
   .lead-row-wrap:last-child{border-bottom:none;}
   .lead-row-wrap .lead-row{border-bottom:none;}
@@ -229,6 +237,8 @@ body{background:var(--bg);}
   <div class="add-card">
     <div class="add-title">Добавить лида</div>
     <input class="add-input" id="leadNameInput" placeholder="Название компании" />
+    <input class="add-input" id="leadContactInput" placeholder="Контактное лицо (ФИО, необязательно)" />
+    <input class="add-input" id="leadPhoneInput" placeholder="Телефон (необязательно)" />
     <div class="proj-row" id="projRow"></div>
     <button class="add-btn" id="addLeadBtn">+ Добавить в «Новый»</button>
   </div>
@@ -334,6 +344,7 @@ function render(){
               <div class="lead-info">
                 <div class="lead-name">${escapeHtml(l.company_name)}</div>
                 <div class="lead-sub">${projLabels[l.project] || l.project}${l.deal_amount > 0 ? ' · ' + Number(l.deal_amount).toLocaleString('ru-RU') + ' ₸' : ''}</div>
+                ${(l.contact_person || l.contact_info) ? `<div class="lead-contact">${l.contact_person ? escapeHtml(l.contact_person) : ''}${l.contact_person && l.contact_info ? ' · ' : ''}${l.contact_info ? escapeHtml(l.contact_info) : ''}</div>` : ''}
                 ${l.notes ? `<div class="lead-note-preview">💬 ${escapeHtml(l.notes)}</div>` : ''}
               </div>
               <div class="lead-actions">
@@ -343,8 +354,10 @@ function render(){
               </div>
             </div>
             <div class="note-editor" id="note-editor-${l.id}">
+              <input class="note-input" id="note-contact-${l.id}" placeholder="Контактное лицо" value="${l.contact_person ? escapeHtml(l.contact_person) : ''}" />
+              <input class="note-input" id="note-phone-${l.id}" placeholder="Телефон" value="${l.contact_info ? escapeHtml(l.contact_info) : ''}" />
               <textarea class="note-textarea" id="note-text-${l.id}" placeholder="Например: отправил рассылку, ждём ответа / не берёт трубку с 28.07 / просил перезвонить в среду">${escapeHtml(l.notes || '')}</textarea>
-              <button class="note-save-btn" data-note-save="${l.id}">Сохранить заметку</button>
+              <button class="note-save-btn" data-note-save="${l.id}">Сохранить</button>
             </div>
           </div>
         `).join('') : '<div class="empty-hint">Пока пусто</div>'}
@@ -415,7 +428,9 @@ async function deleteLead(id){
 
 async function saveNote(id){
   const text = document.getElementById('note-text-' + id).value.trim();
-  await sb('mnsales_leads?id=eq.' + id, { method:'PATCH', body: JSON.stringify({ notes: text, updated_at: new Date().toISOString() }) });
+  const contact = document.getElementById('note-contact-' + id).value.trim();
+  const phone = document.getElementById('note-phone-' + id).value.trim();
+  await sb('mnsales_leads?id=eq.' + id, { method:'PATCH', body: JSON.stringify({ notes: text, contact_person: contact || null, contact_info: phone || null, updated_at: new Date().toISOString() }) });
   await loadLeads();
 }
 
@@ -424,14 +439,20 @@ document.getElementById('leadNameInput').addEventListener('keydown', (e) => { if
 
 async function addLead(){
   const input = document.getElementById('leadNameInput');
+  const contactInput = document.getElementById('leadContactInput');
+  const phoneInput = document.getElementById('leadPhoneInput');
   const name = input.value.trim();
+  const contact = contactInput.value.trim();
+  const phone = phoneInput.value.trim();
   if (!name) return;
   const btn = document.getElementById('addLeadBtn');
   btn.disabled = true;
   try {
-    await sb('mnsales_leads', { method:'POST', body: JSON.stringify({ company_name: name, project: selectedProj, stage: 'new' }) });
-    sendTelegram(`📞 <b>Новый лид</b>\n${name} (${projLabels[selectedProj]})`);
+    await sb('mnsales_leads', { method:'POST', body: JSON.stringify({ company_name: name, project: selectedProj, stage: 'new', contact_person: contact || null, contact_info: phone || null }) });
+    sendTelegram(`📞 <b>Новый лид</b>\n${name} (${projLabels[selectedProj]})${contact ? '\n' + contact : ''}${phone ? '\n' + phone : ''}`);
     input.value = '';
+    contactInput.value = '';
+    phoneInput.value = '';
     await loadLeads();
   } finally {
     btn.disabled = false;
