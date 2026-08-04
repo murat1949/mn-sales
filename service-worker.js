@@ -1,7 +1,8 @@
-const CACHE_NAME = 'mn-sales-v1';
+const CACHE_NAME = 'mn-sales-v2';
 const APP_SHELL = [
   './',
   './index.html',
+  './overview.html',
   './leads.html',
   './tasks.html',
   './content.html',
@@ -10,6 +11,7 @@ const APP_SHELL = [
   './notifications.html',
   './manifest.webmanifest',
   './pwa-install.js',
+  './images/hero-phone.png',
   './icons/icon-192.png',
   './icons/icon-512.png'
 ];
