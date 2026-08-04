@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0f9b6c">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>MN Sales — Обзор</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
@@ -30,7 +33,18 @@
     padding:20px 18px 26px;
     border-radius:0 0 20px 20px;
   }
-  .logo-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .logo-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;justify-content:space-between;}
+  .logo-row-left{display:flex;align-items:center;gap:10px;}
+  .net-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.2);border-radius:999px;padding:6px 11px;font-size:10.5px;font-weight:700;color:#fff;transition:background .2s,color .2s;flex-shrink:0;}
+  .net-dot{width:6px;height:6px;border-radius:50%;background:#baffdb;animation:netPulse 1.8s infinite;}
+  .net-pill.offline{background:rgba(255,214,0,0.25);color:#fff3d6;}
+  .net-pill.offline .net-dot{background:#FFD600;animation:none;box-shadow:0 0 6px 1px rgba(255,214,0,0.8);}
+  @keyframes netPulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+  .install-row{margin-top:12px;}
+  .install-btn{display:none;align-items:center;gap:8px;background:rgba(255,255,255,0.16);border:1px solid rgba(255,255,255,0.35);color:#fff;border-radius:10px;padding:9px 13px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;}
+  .install-btn.show{display:inline-flex;}
+  .install-help{display:none;font-size:11px;color:rgba(255,255,255,0.85);margin-top:8px;line-height:1.4;}
+  .install-help.show{display:block;}
   .logo-sq{
     width:34px;height:34px;border-radius:8px;
     background:rgba(255,255,255,0.18);
@@ -140,11 +154,18 @@ body{background:var(--bg);}
 
 <header>
   <div class="logo-row">
-    <div class="logo-sq">MN</div>
-    <div class="brand">MN Sales · Продвижение</div>
+    <div class="logo-row-left">
+      <div class="logo-sq">MN</div>
+      <div class="brand">MN Sales · Продвижение</div>
+    </div>
+    <span class="net-pill" id="netStatus"><i class="net-dot"></i><span id="netStatusText">ОНЛАЙН</span></span>
   </div>
   <h1>Обзор</h1>
-  <div class="subtitle">Пятница, 31 июля — за неделю по всем проектам</div>
+  <div class="subtitle">Работает и без интернета — установите на телефон</div>
+  <div class="install-row">
+    <button class="install-btn" id="installApp"><span>📲</span><span>Установить на телефон</span></button>
+    <div class="install-help" id="installHelp"></div>
+  </div>
 </header>
 <div class="page-body">
 
@@ -256,6 +277,25 @@ new Chart(document.getElementById('moneyChart'), {
   }
 });
 </script>
+<script>
+function updateNetStatus(){
+  const pill = document.getElementById('netStatus');
+  const text = document.getElementById('netStatusText');
+  if (!pill) return;
+  if (navigator.onLine) {
+    pill.classList.remove('offline');
+    text.textContent = 'ОНЛАЙН';
+  } else {
+    pill.classList.add('offline');
+    text.textContent = 'ОФЛАЙН — приложение открыто из кэша';
+  }
+}
+window.addEventListener('online', updateNetStatus);
+window.addEventListener('offline', updateNetStatus);
+document.addEventListener('DOMContentLoaded', updateNetStatus);
+if (document.readyState === 'interactive' || document.readyState === 'complete') updateNetStatus();
+</script>
+<script src="pwa-install.js"></script>
 
 </div>
 <nav class="bottom-nav">
